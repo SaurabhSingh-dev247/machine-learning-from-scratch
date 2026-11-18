@@ -1,12 +1,12 @@
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import log_loss
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import log_loss
 from utils import (
-    calculate_log_loss,
-    calculate_recall,
-    calculate_precision,
     calculate_accuracy,
+    calculate_log_loss,
+    calculate_precision,
+    calculate_recall,
     confusion_matrix,
 )
 
@@ -47,7 +47,6 @@ def add_bias(X):
 x_train_mean = np.mean(x_train, axis=0)
 x_train_std_deviation = np.std(x_train, axis=0)
 
-# prevent division by zero
 x_train_std_deviation[x_train_std_deviation == 0] = 1
 
 x_train_stdized = (x_train - x_train_mean) / x_train_std_deviation
@@ -90,6 +89,13 @@ z_new = x_test_scaled @ theta
 y_pred_scaled = sigmoid(z_new)
 
 
+clf = LogisticRegression(max_iter=21000)
+clf.fit(x_train_stdized[:, 1:], y_train)
+
+print("THETA:", theta)
+print("SCIKIT THETA:", clf.coef_)
+print("SCIKIT INTERCEPT:", clf.intercept_)
+print()
 for threshold in [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
     y_pred = np.where(y_pred_scaled >= threshold, 1, 0)
     TP, TN, FP, FN = confusion_matrix(y_test, y_pred=y_pred)
@@ -108,14 +114,7 @@ for threshold in [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
     print("CONFUSTION MATRIX:")
     print("TP:", TP, "TN:", TN, "FP:", FP, "FN:", FN)
     print()
-
-
-clf = LogisticRegression(max_iter=21000, penalty=None)
-clf.fit(x_train_stdized[:, 1:], y_train)  # drop the ones column
-
-print("THETA:", theta)
-print("SCIKIT THETA:", clf.coef_)
-print("SCIKIT INTERCEPT:", clf.intercept_)
+    
 print(
     "SCIKIT LEARN LOG LOSS:",
     log_loss(y_test, clf.predict_proba(x_test_scaled[:, 1:])[:, 1]),
